@@ -16,9 +16,13 @@ app.use(cors({
 // Configura el middleware para manejar JSON
 app.use(express.json()); // Para manejar solicitudes JSON
 
+// Ruta raíz
+app.get('/', (req, res) => {
+  res.send('Welcome to the API!');
+});
+
 // Usa las rutas del usuario antes de servir archivos estáticos
 app.use('/api', userRoutes); // '/api' es el prefijo para tus rutas
-
 
 // Manejo de errores
 app.use((err, req, res, next) => {
