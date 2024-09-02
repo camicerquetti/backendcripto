@@ -21,6 +21,11 @@ app.get('/', (req, res) => {
   res.send('Welcome to the API!');
 });
 
+app.get('/api/endpoint', (req, res) => {
+  res.status(200).json({ message: 'Success!' });
+});
+
+
 // Usa las rutas del usuario antes de servir archivos estáticos
 app.use('/api', userRoutes); // '/api' es el prefijo para tus rutas
 
