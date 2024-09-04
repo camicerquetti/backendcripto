@@ -4,7 +4,7 @@ require('dotenv').config(); // Carga las variables de entorno desde el archivo .
 // Configura la conexión a la base de datos usando variables de entorno
 const db = mysql.createPool({
   host: process.env.DB_HOST,
-  port: process.env.PORT,  
+  port: process.env.DB_PORT,  
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
