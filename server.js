@@ -27,7 +27,7 @@ app.get('/api/endpoint', (req, res) => {
 
 
 // Usa las rutas del usuario antes de servir archivos estáticos
-app.use('/api', userRoutes); // '/api' es el prefijo para tus rutas
+app.use('/', userRoutes); // '/api' es el prefijo para tus rutas
 
 // Manejo de errores
 app.use((err, req, res, next) => {
