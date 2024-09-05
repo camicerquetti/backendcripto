@@ -1,6 +1,7 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+// Configura la conexión a la base de datos usando variables de entorno
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10) || 3306, // Usa 3306 por defecto si no está especificado
@@ -12,14 +13,18 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-// Test de conexión
-db.getConnection()
-  .then(connection => {
+// Prueba de conexión y manejo de errores
+async function testConnection() {
+  try {
+    const connection = await db.getConnection();
     console.log('Conexión a la base de datos exitosa');
-    connection.release(); // Libera la conexión
-  })
-  .catch(err => {
+    connection.release(); // Libera la conexión después de la prueba
+  } catch (err) {
     console.error('Error de conexión a la base de datos:', err.message);
-  });
+  }
+}
+
+// Ejecuta la prueba de conexión
+testConnection();
 
 module.exports = db;
