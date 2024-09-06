@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const { generateToken } = require('../utils/jwtUtils'); // Importa la función generateToken
 const authMiddleware = require('../middlewares/authMiddleware');
-const transporter = require('../routes/mailer'); // Importa el transportador de correo desde mailer.js
+const transporter = require('./mailer'); // Importa el transportador de correo desde mailer.js
 require('dotenv').config();
 const crypto = require('crypto');
 const moment = require('moment');
