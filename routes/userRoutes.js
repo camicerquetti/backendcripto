@@ -5,13 +5,11 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const { generateToken } = require('../utils/jwtUtils'); // Importa la función generateToken
 const authMiddleware = require('../middlewares/authMiddleware');
-const nodemailer = require('nodemailer');
-const transporter = require('../routes/mailer');
+const transporter = require('../routes/mailer'); // Importa el transportador de correo desde mailer.js
 require('dotenv').config();
 const crypto = require('crypto');
 const moment = require('moment');
 const { promisify } = require('util');
-
 
 // Ruta para solicitar el restablecimiento de contraseña
 router.post('/recover-password', [
@@ -61,6 +59,7 @@ router.post('/recover-password', [
     res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
+
 // Ruta para restablecer la contraseña
 router.post('/reset-password', [
   body('token').notEmpty().withMessage('Token is required'),
@@ -107,6 +106,7 @@ router.post('/reset-password', [
     res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
+
 // Ruta protegida para pruebas
 router.get('/protected-route', authMiddleware, (req, res) => {
   res.status(200).json({ message: 'This is a protected route', user: req.user });
@@ -293,26 +293,18 @@ router.post('/requestcoins', authMiddleware, async (req, res) => {
 
     // Registrar la solicitud de monedas
     const sql = 'INSERT INTO coin_requests (fromUserId, toUserId, amount) VALUES (?, ?, ?)';
-    await db.query(sql, [fromUserId, toUserId, amount]);
+    await db.query(sql, [requesterId, toUserId, amount]);
 
     // Enviar un mensaje al destinatario
-    const message = `You have received a coin request of ${amount} coins from user ${fromUserId}. Please review it.`;
+    const message = `You have received a coin request of ${amount} coins from user ${requesterId}. Please review it.`;
     const messageSql = 'INSERT INTO messages (fromUserId, toUserId, message) VALUES (?, ?, ?)';
-    await db.query(messageSql, [fromUserId, toUserId, message]);
+    await db.query(messageSql, [requesterId, toUserId, message]);
 
     res.status(200).json({ message: 'Request successful' });
   } catch (err) {
     console.error('Internal server error:', err);
     res.status(500).json({ error: 'Internal server error', details: err.message });
   }
-});
-// Configura tu transporte de correo
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
 });
 
 // Ruta para manejar el formulario de contacto
