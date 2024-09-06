@@ -7,7 +7,104 @@ const { generateToken } = require('../utils/jwtUtils'); // Importa la función g
 const authMiddleware = require('../middlewares/authMiddleware');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
+const crypto = require('crypto');
+const moment = require('moment');
+const { promisify } = require('util');
 
+// Ruta para solicitar el restablecimiento de contraseña
+router.post('/recover-password', [
+  body('email').isEmail().withMessage('Invalid email format')
+], async (req, res) => {
+  // Validar los datos
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { email } = req.body;
+
+  try {
+    // Buscar al usuario en la base de datos
+    const sql = 'SELECT id FROM users WHERE email = ?';
+    const [results] = await db.query(sql, [email]);
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = results[0];
+    
+    // Generar un token de recuperación
+    const token = crypto.randomBytes(20).toString('hex');
+    const tokenExpiration = moment().add(1, 'hour').format('YYYY-MM-DD HH:mm:ss'); // Token válido por 1 hora
+
+    // Guardar el token y su expiración en la base de datos
+    const insertTokenSql = 'INSERT INTO password_reset_tokens (userId, token, expiresAt) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token), expiresAt = VALUES(expiresAt)';
+    await db.query(insertTokenSql, [user.id, token, tokenExpiration]);
+
+    // Enviar el correo electrónico
+    const resetUrl = `https://frontcriptomate-1.onrender.com/reset-password?token=${token}`;
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Recovery',
+      text: `You requested a password reset. Follow this link to reset your password: ${resetUrl}`
+    };
+
+    await promisify(transporter.sendMail).bind(transporter)(mailOptions);
+
+    res.status(200).json({ message: 'Password recovery email sent' });
+  } catch (err) {
+    console.error('Error during password recovery:', err);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
+});
+// Ruta para restablecer la contraseña
+router.post('/reset-password', [
+  body('token').notEmpty().withMessage('Token is required'),
+  body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters long')
+], async (req, res) => {
+  // Validar los datos
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { token, newPassword } = req.body;
+
+  try {
+    // Buscar el token en la base de datos
+    const sql = 'SELECT userId, expiresAt FROM password_reset_tokens WHERE token = ?';
+    const [results] = await db.query(sql, [token]);
+
+    if (results.length === 0) {
+      return res.status(400).json({ error: 'Invalid token' });
+    }
+
+    const { userId, expiresAt } = results[0];
+
+    // Verificar si el token ha expirado
+    if (moment().isAfter(expiresAt)) {
+      return res.status(400).json({ error: 'Token has expired' });
+    }
+
+    // Hash de la nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar la contraseña del usuario
+    const updatePasswordSql = 'UPDATE users SET password = ? WHERE id = ?';
+    await db.query(updatePasswordSql, [hashedPassword, userId]);
+
+    // Eliminar el token de la base de datos
+    const deleteTokenSql = 'DELETE FROM password_reset_tokens WHERE token = ?';
+    await db.query(deleteTokenSql, [token]);
+
+    res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (err) {
+    console.error('Error during password reset:', err);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
+});
 // Ruta protegida para pruebas
 router.get('/protected-route', authMiddleware, (req, res) => {
   res.status(200).json({ message: 'This is a protected route', user: req.user });
