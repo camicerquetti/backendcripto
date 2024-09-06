@@ -6,10 +6,12 @@ const { body, validationResult } = require('express-validator');
 const { generateToken } = require('../utils/jwtUtils'); // Importa la función generateToken
 const authMiddleware = require('../middlewares/authMiddleware');
 const nodemailer = require('nodemailer');
+const transporter = require('../routes/mailer');
 require('dotenv').config();
 const crypto = require('crypto');
 const moment = require('moment');
 const { promisify } = require('util');
+
 
 // Ruta para solicitar el restablecimiento de contraseña
 router.post('/recover-password', [
