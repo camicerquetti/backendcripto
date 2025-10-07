@@ -1,3 +1,37 @@
+# CriptoMate - Backend
+
+## Descripción
+
+CriptoMate es una aplicación creada como incentivo para estudiantes. En esta app, cada usuario recibe monedas virtuales que pueden usar para canjear beneficios. El rol de admin lo desempeña el docente, quien puede transferir monedas a los estudiantes como recompensa por tareas, buen comportamiento u otros logros.
+
+Este backend, desarrollado en Node.js, gestiona la lógica del servidor, la autenticación, la transferencia de monedas y la comunicación con la base de datos MySQL.
+
+## Tecnologías utilizadas
+
+- Node.js
+- Express.js
+- MySQL
+- Sequelize (o el ORM/driver que uses)
+- JWT para autenticación y seguridad
+- Dotenv para variables de entorno
+
+## Funcionalidades principales
+
+- Registro y gestión de usuarios (docentes y estudiantes).
+- Autenticación segura con tokens JWT.
+- Transferencia de monedas virtuales del docente a los estudiantes.
+- Consulta del saldo de monedas de cada usuario.
+- Gestión de roles (admin y estudiantes).
+- Historial de transacciones de monedas.
+
+## Instalación
+
+1. Clonar el repositorio:
+
+   ```bash
+   git clone <URL_DEL_REPOSITORIO>
+   cd criptomate-backend
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
